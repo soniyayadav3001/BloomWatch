@@ -10,7 +10,7 @@ This prototype is designed for the NASA Space Apps Challenge 2025 and currently 
 ---
 
 ## 🚀 Features
-- 📍 **Multi-region support** – Select from 8 demo regions (Bhopal, Indore, Jabalpur, Gwalior, Ujjain, Sagar, Rewa, Satna).  
+- 📍 **Multi-region support** – Select from 8 demo regions (Bhopal, Indore, Jabalpur, Gwalior, Ujjain, Sagar, Rewa, Satna). Further it can be extended to all regions across India, and globally.
 - 🌸 **Bloom detection** – Identifies past bloom events using NDVI peak detection.  
 - 🔮 **Bloom prediction** – Forecasts future bloom events using **Facebook Prophet**.  
 - 📊 **Interactive visualization** – Timeline plots with raw NDVI, smoothed NDVI, detected blooms, and future predictions.  

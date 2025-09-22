@@ -7,6 +7,8 @@ The system leverages **historical NDVI data** to detect past bloom events 🌱 a
 This prototype is designed for the NASA Space Apps Challenge 2025 and currently demonstrates the solution with **synthetic NDVI datasets for 8 regions in Madhya Pradesh, India**.  
 🚀 **In future development, the system can be extended to all regions across India, and globally, by directly integrating with NASA MODIS and Sentinel-2 satellite datasets via Google Earth Engine (GEE).**
 
+Prototype is using GEE-exported CSVs for quick demo.
+“Final product will directly connect to Google Earth Engine API for live NDVI retrieval.
 ---
 
 ## 🚀 Features

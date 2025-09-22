@@ -37,3 +37,17 @@ In future development, the system can be **extended to all regions across India,
 - Integration via **Google Earth Engine (GEE) API** will allow automatic NDVI time-series extraction for any location globally.  
 
 ---
+
+## 📸 Prototype Snapshots
+
+These are some snapshots of the working BloomWatch prototype:
+
+![Snapshot 1](img1.png)  
+![Snapshot 2](img2.png)  
+![Snapshot 3](img3.png)  
+
+> The prototype demonstrates NDVI data loading, past bloom detection, future bloom prediction, interactive plots, and regional maps.
+
+---
+
+*🌸 Prototype uses synthetic NDVI data for demo. Extendable to real NASA MODIS / Sentinel-2 datasets via Google Earth Engine API.*

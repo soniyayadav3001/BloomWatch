@@ -37,10 +37,3 @@ In future development, the system can be **extended to all regions across India,
 - Integration via **Google Earth Engine (GEE) API** will allow automatic NDVI time-series extraction for any location globally.  
 
 ---
-
-## ⚡ Installation & Setup
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/<your-repo-name>/bloomwatch.git
-cd bloomwatch

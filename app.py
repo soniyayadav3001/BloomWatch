@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.signal import find_peaks
 from prophet import Prophet
 import plotly.graph_objects as go
-import plotly.express as px
 
 # ---------------------------
 # App Config
@@ -30,16 +29,9 @@ REGIONS = {
 @st.cache_data
 def load_data(filename):
     """Loads and preprocesses NDVI data."""
-    try:
-        df = pd.read_csv(filename)
-        df['date'] = pd.to_datetime(df['date'])
-        return df.sort_values('date').reset_index(drop=True)
-    except FileNotFoundError:
-        st.error(f"Error: The file '{filename}' was not found.")
-        st.stop()
-    except Exception as e:
-        st.error(f"An error occurred while loading the data: {e}")
-        st.stop()
+    df = pd.read_csv(filename)
+    df['date'] = pd.to_datetime(df['date'])
+    return df.sort_values('date').reset_index(drop=True)
 
 def detect_blooms(df):
     """Detects past bloom events using a smoothed NDVI curve."""
@@ -56,12 +48,12 @@ def predict_future_blooms(df):
     m.fit(prophet_df)
     future = m.make_future_dataframe(periods=12, freq='16D')
     forecast = m.predict(future)
-    
+
     forecast_vals = forecast[['ds', 'yhat']].copy()
     forecast_vals['yhat_smooth'] = forecast_vals['yhat'].rolling(window=3, min_periods=1, center=True).mean()
     future_peaks_indices, _ = find_peaks(forecast_vals['yhat_smooth'].values, height=0.6, distance=8)
     future_peaks = forecast_vals.iloc[future_peaks_indices]
-    
+
     # Filter for future dates
     future_peaks = future_peaks[future_peaks['ds'] > df['date'].max()]
     return forecast, future_peaks
@@ -69,23 +61,32 @@ def predict_future_blooms(df):
 def create_plot(df, peaks, forecast, future_peaks):
     """Generates the main Plotly visualization."""
     fig = go.Figure()
-    
+
     # Plot historical NDVI and smoothed curve
-    fig.add_trace(go.Scatter(x=df['date'], y=df['ndvi'], mode='lines', name='Raw NDVI', line=dict(color='lightgreen', width=1), opacity=0.6))
-    fig.add_trace(go.Scatter(x=df['date'], y=df['ndvi_smooth'], mode='lines', name='Smoothed NDVI', line=dict(color='green', width=2)))
+    fig.add_trace(go.Scatter(x=df['date'], y=df['ndvi'], mode='lines',
+                             name='Raw NDVI', line=dict(color='lightgreen', width=1), opacity=0.6))
+    fig.add_trace(go.Scatter(x=df['date'], y=df['ndvi_smooth'], mode='lines',
+                             name='Smoothed NDVI', line=dict(color='green', width=2)))
 
     # Plot detected historical blooms
     if len(peaks) > 0:
-        fig.add_trace(go.Scatter(x=df.loc[peaks, 'date'], y=df.loc[peaks, 'ndvi_smooth'], mode='markers', name='Detected Blooms', marker=dict(color='red', size=10, symbol='star', line=dict(color='white', width=1.5))))
-    
+        fig.add_trace(go.Scatter(x=df.loc[peaks, 'date'], y=df.loc[peaks, 'ndvi_smooth'],
+                                 mode='markers', name='Detected Blooms',
+                                 marker=dict(color='red', size=10, symbol='star',
+                                             line=dict(color='white', width=1.5))))
+
     # Plot predicted NDVI forecast
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Forecast', line=dict(color='blue', dash='dash', width=2)))
-    
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines',
+                             name='Forecast', line=dict(color='blue', dash='dash', width=2)))
+
     # Plot predicted future blooms
     if not future_peaks.empty:
-        fig.add_trace(go.Scatter(x=future_peaks['ds'], y=future_peaks['yhat'], mode='markers', name='Predicted Blooms', marker=dict(color='orange', size=10, symbol='circle', line=dict(color='white', width=1.5))))
+        fig.add_trace(go.Scatter(x=future_peaks['ds'], y=future_peaks['yhat'],
+                                 mode='markers', name='Predicted Blooms',
+                                 marker=dict(color='orange', size=10, symbol='circle',
+                                             line=dict(color='white', width=1.5))))
 
-    # Update layout for a cleaner look
+    # Update layout
     fig.update_layout(
         title=f"NDVI Timeline for {st.session_state.get('region', 'Selected Region')}",
         xaxis_title="Date",
@@ -99,64 +100,52 @@ def create_plot(df, peaks, forecast, future_peaks):
 # ---------------------------
 # Streamlit UI
 # ---------------------------
-st.title("🌸 BloomWatch – Multi-Region NDVI Prototype")
+st.title("🌸 BloomWatch – Multi-Region NDVI")
 st.markdown("Track and predict blooming events using satellite-based NDVI data. 🌱✨")
 st.markdown("---")
 
-# Use st.sidebar for region selection for better UI
-with st.sidebar:
-    st.header("Settings")
-    region = st.selectbox("📍 Select a Region", list(REGIONS.keys()))
-    st.info("🌎 Choose a region to analyze its Normalized Difference Vegetation Index (NDVI) data.")
-    st.markdown("---")
-    
-# Store the selected region in session state to maintain consistency
+# Region selection (main page)
+region = st.selectbox("📍 Select a Region", list(REGIONS.keys()))
 if 'region' not in st.session_state or st.session_state.region != region:
     st.session_state.region = region
-    
-# Main app content
-st.header("Step 1: Data Loading")
+
+# Data Loading
 df = load_data(REGIONS[st.session_state.region])
 st.success(f"✅ NDVI dataset for **{st.session_state.region}** loaded successfully.")
 
-# ---
-st.header("Step 2: Detecting Past Blooms")
-st.info("We use a peak detection algorithm to identify past bloom events in the historical data.")
+# Detecting Past Blooms
+st.subheader("Past Bloom Events")
 df, peaks = detect_blooms(df)
 if len(peaks) > 0:
-    st.success(f"🌸 Found {len(peaks)} past bloom events in {st.session_state.region}:")
-    bloom_dates = df.loc[peaks, 'date'].dt.strftime('%d/%m/%Y').tolist()
-    st.markdown(
-        " | ".join([f"**{d}**" for d in bloom_dates]),
-        unsafe_allow_html=True
-    )
+    st.success(f"🌸 Found {len(peaks)} past bloom events in {st.session_state.region}")
+    bloom_dates = df.loc[peaks, ['date', 'ndvi_smooth']]
+    bloom_dates['date'] = bloom_dates['date'].dt.strftime('%d/%m/%Y')
+    bloom_dates.rename(columns={'date': 'Bloom Date', 'ndvi_smooth': 'NDVI Value'}, inplace=True)
+    st.table(bloom_dates.reset_index(drop=True))
 else:
     st.warning("⚠️ No bloom events detected in historical data.")
 
-# ---
-st.header("Step 3: Predicting Future Blooms")
-st.info("Using Facebook's Prophet library, we forecast the NDVI trend and predict future bloom dates.")
+# Predicting Future Blooms
+st.subheader("Predicted Future Blooms")
 with st.spinner("Forecasting future blooms..."):
     forecast, future_peaks = predict_future_blooms(df)
-    
+
 if not future_peaks.empty:
     st.success("🔮 Predicted future bloom events:")
-    for i, row in future_peaks.head(3).iterrows():
-        st.markdown(
-            f"⏳ **Expected:** {row['ds'].strftime('%d/%m/%Y')} &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; 🌱 **NDVI:** {row['yhat']:.3f}"
-        )
+    future_table = future_peaks[['ds', 'yhat']].copy()
+    future_table['ds'] = future_table['ds'].dt.strftime('%d/%m/%Y')
+    future_table.rename(columns={'ds': 'Predicted Date', 'yhat': 'Forecasted NDVI'}, inplace=True)
+    st.table(future_table.reset_index(drop=True).head(5))
 else:
     st.warning("⚠️ No future bloom predicted.")
 
-# ---
-st.header("Step 4: Visualization")
-st.info("Explore the complete timeline, including historical data, detected blooms, and future predictions.")
+# Visualization
+st.subheader("NDVI Timeline")
 fig = create_plot(df, peaks, forecast, future_peaks)
 st.plotly_chart(fig, use_container_width=True)
 
-# ---
-st.header("Step 5: Export Results")
-st.info("Download the processed historical data with detected bloom events.")
+# Export Results
+st.subheader("Export Results")
 out = df[['date', 'ndvi', 'ndvi_smooth', 'is_peak']].copy()
 out['date'] = out['date'].dt.strftime('%d/%m/%Y')
 csv = out.to_csv(index=False)
@@ -167,9 +156,13 @@ st.download_button(
     mime="text/csv"
 )
 
-# ---
+# Map
 st.subheader("Map of the Region")
 if set(['lat', 'lon']).issubset(df.columns):
     st.map(df[['lat', 'lon']].dropna())
 else:
     st.info("📍 Latitude and longitude data not available for this region's map.")
+
+# Footer
+st.markdown("---")
+st.caption("🌸 Prototype uses synthetic NDVI data for demo. Extendable to real NASA MODIS / Sentinel-2 datasets via Google Earth Engine API.")

@@ -20,12 +20,21 @@ In future development, the system can be **extended to all regions across India,
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend/UI:** Streamlit + Plotly  
-- **Backend/Processing:** Python, Pandas, SciPy, Prophet  
-- **Database (demo):** CSV datasets (synthetic NDVI data)  
-- **Mapping:** Streamlit map, Leaflet (future scope)  
-- **Hosting:** Streamlit Cloud / Local Run  
-- **Scalability:** PostgreSQL + PostGIS, AWS/Azure (future production)  
+
+- **Frontend/UI:** 
+  - **Prototype:** Streamlit + Plotly  
+  - **Main project (future):** React.js + Leaflet for interactive dashboard  
+
+- **Backend/Processing:** FastAPI (APIs for preprocessing & ML serving), Python, Pandas, SciPy, Prophet, scikit-learn  
+
+- **Machine Learning:** `find_peaks` (detection), Prophet / scikit-learn (forecasting)  
+
+- **Database:** PostgreSQL + PostGIS (geospatial & time-series storage)  
+
+- **Visualization:** Plotly / Matplotlib for graphs, Leaflet maps for geospatial data  
+
+- **Hosting:** Streamlit Cloud (prototype), AWS / Azure (scalable main deployment)  
+ 
 
 ---
 
